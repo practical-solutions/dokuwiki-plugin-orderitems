@@ -1,7 +1,9 @@
-# DokuWik-Plugin: Order Items
+# DokuWiki-Plugin: Order Items
 
 A variant of a form generator which is intended for creating lists in a table. Each row containing an item name and a input box for entering the number of
  this item to be ordered. An email adress can be stated to which the order is sent.
+
+![Screenshot](screenshot.png)
 
 ## Compatibility
 
