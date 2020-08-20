@@ -1,0 +1,27 @@
+﻿.plugin_orderitems table,
+.plugin_orderitems tbody,
+.plugin_orderitems tr,
+.plugin_orderitems td
+{
+    border:0;
+}
+
+.plugin_orderitems td {padding:8px;}
+
+.plugin_orderitems input[type=text],
+.plugin_orderitems textarea {
+    background:#eee;
+    padding:2px;
+    border:1px solid #dfdfdf;
+    border-radius:0;
+}
+
+.plugin_orderitems input[type=text]:focus, 
+.plugin_orderitems textarea:focus {
+    background-color: lightblue;
+    border:1px solid black;
+}
+
+.plugin_orderitems tr:nth-child(even) {background: linen}
+
+
