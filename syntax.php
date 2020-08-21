@@ -18,20 +18,17 @@ if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
  */
 class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
 
-    /**
-     * Syntax Type
-     *
-     * Needs to return one of the mode types defined in $PARSER_MODES in parser.php
-     * @return string
-     */
+
     public function getType() {
         return 'formatting';
     }
     
-    function getPType() { return 'normal'; }
     
+    function getPType() { return 'normal'; }
+      
     
     function getAllowedTypes() { return array('formatting','substition'); }
+    
     
     function getSort() { return 136; }
 
@@ -84,8 +81,10 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                         $res .= "<input type=\"hidden\" name=\"Zusatztext $amount\" value='".substr($l,6)."'>";
                     } else {
                         
+                        # Should item id be entered as an additional field?
+                        $id = false;
+                        if (strpos(strtolower($l),'id ') === 0) {$id = true;$l = substr($l,3);}
                         
-                            
                         $box = 0; # 0 = small textbox (default), 1 = large textbox, 2 = textarea
                         if (strpos(strtolower($l),'text ') === 0) {$l = substr($l,5);$box=1;}
                         if (strpos(strtolower($l),'box ') === 0) {$l = substr($l,4);$box=2;}
@@ -97,10 +96,8 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                         
                         $t = explode("##",$l);
                         $l = $t[0];
-                        if (isset($t[1])) {$unit = $t[1];} else $unit = '';
-                        if (isset($t[2])) {$value = $t[2];} else $value = '';
-                            
-                        
+                        if (isset($t[1])) {$unit = trim($t[1]);} else $unit = '';
+                        if (isset($t[2])) {$value = trim($t[2]);} else $value = '';
                             
                         $res .= "<tr>";
                             
@@ -118,12 +115,18 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                         }
                         
                         if ($box==2) {
-                            $res .= '<textarea '.($red? " style='background-color:pink' ":"").' cols="50" rows="3" name="'.$l.'" >'.$value.'</textarea>';
+                            $res .= '<textarea '.($red? " style='background-color:pink' ":"").' cols="50" rows="3" name="'.$l.($unit==''? '':" ($unit)").'" >'.$value.'</textarea>';
                         } else {    
-                            $res .= '<input autocomplete="off" '.($red? " style='background-color:pink' ":"").'type="text" size="'.($box == 0? "2":"40").'" name="'.$l.'" value="'.$value.'">';
+                            $res .= '<input autocomplete="off" '.($red? " style='background-color:pink' ":"").'type="text" size="'.($box == 0? "2":"40").'" name="'.$l.($unit==''? '':" ($unit)").'" value="'.$value.'">';
                         }
                             
-                        $res .= " $unit</td>";
+                        $res .= " $unit";
+                        
+                        if ($id) {
+                            $res .= '&nbsp;&nbsp;&nbsp; Bestellnummer: <input type="text" autocomplete="off" size="20" name="'.$l.'_'.$this->getLang("item id").'" value="'.$_POST[$l.'_'.$this->getLang("item id")].'">';
+                       }
+                        
+                        $res .= "</td>";
                         
                         $res .= "</tr>";
                     }
@@ -148,7 +151,7 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
         foreach ($info as $k => $i) {
             if (!in_array($k,Array('email','space','sendorder')) && $i<>"") {
                 $k = str_replace("_"," ",$k);
-                $res .= "<tr><th style='padding:2px 10px;background:linen'>$k</th><td style='padding:2px 10px;'>$i</td><tr>";
+                $res .= "<tr><th style='padding:2px 10px;background:linen'>$k</th><td style='padding:2px 10px;'>$i</td></tr>";
             }
             
         }
@@ -171,12 +174,28 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
             if (!$d['pass']) {
                 $renderer->doc .= $d['form'];
             } else {
-                $renderer->doc .= $this->getLang("send msg");
-                
                 if (isset($_POST['sendorder'])){
-                    if (mail($_POST['email'],'Bestellung',$this->format_mail($_POST),"Content-type: text/html; charset=utf-8\r\n")) {
-                        msg("E-Mail send.",1);
-                    } else msg("Error: E-Mail could not be sent.",-1);
+                                  
+                    global $ID;
+                    
+                    $mail = new Mailer();
+                    $mail->to($_POST['email']);
+                    $mail->subject($this->getLang("mail subject").': '.p_get_first_heading($ID));
+
+                    $html = $this->format_mail($_POST);
+        
+                    $mail->setBody("",null,null,$html);
+		
+                    $ok = $mail->send();
+                    
+                    
+                    if ($ok) {
+                        msg($this->getLang("mail success"),1);
+                        $renderer->doc .= $this->getLang("send msg");
+                    } else {
+                        msg($this->getLang("mail error"),-1);
+                        $renderer->doc .= $d['form'];
+                    }
                 }
             }
 
