@@ -1,7 +1,7 @@
 ﻿base   orderitems
 author Gero Gothe
 email  practical@medizin-lernen.de
-date   2020-08-21
+date   2020-09-14
 name   Order Items Table
 desc   Renders a table as an item list in a form to be sent per email
 url    https://github.com/practical-solutions/dokuwiki-plugin-orderitems

@@ -59,8 +59,11 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
         
         $passed = true;
         if (!isset($_POST['sendorder'])) $passed = false;
+        
+        // echo "<pre>".print_r($_POST,true)."</pre>";
 
-        $amount = 0;
+        $amount = 0;        # Counter for hidden elements
+        $individual = 0;    # Counter for items which are named by the user
         
         $res .= "<form name='orderitem' method='post' action=''><table class='plugin_orderitems' >";
             
@@ -81,6 +84,12 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                         $res .= "<input type=\"hidden\" name=\"Zusatztext $amount\" value='".substr($l,6)."'>";
                     } else {
                         
+                        # Item name must be stated by the user
+                        $noname = false;
+                        
+                        if (strpos(strtolower($l),'noname') === 0) {$noname = true;$l = ltrim(substr($l,6));}
+                        // msg(strtolower($l).":".strpos(strtolower($l),'noname '));
+                        
                         # Should item id be entered as an additional field?
                         $id = false;
                         if (strpos(strtolower($l),'id ') === 0) {$id = true;$l = substr($l,3);}
@@ -89,25 +98,53 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                         if (strpos(strtolower($l),'text ') === 0) {$l = substr($l,5);$box=1;}
                         if (strpos(strtolower($l),'box ') === 0) {$l = substr($l,4);$box=2;}
                         
-                        // check if obligatory
+                        # check if obligatory
                         $ob = false;
                         if (strrpos($l,"!!") == strlen($l)-2) {$ob = true;$l=substr($l,0,strlen($l)-2);}
                         
                         
                         $t = explode("##",$l);
-                        $l = $t[0];
+                        $l = trim($t[0]);
                         if (isset($t[1])) {$unit = trim($t[1]);} else $unit = '';
                         if (isset($t[2])) {$value = trim($t[2]);} else $value = '';
-                            
+                        
                         $res .= "<tr>";
+                        
+                        if ($noname) {
                             
-                        $res .= "<td>$l".($ob? "*":"")."</td>";
+                            $individual++;
+                            $l = "item$individual";
+                            
+                            # The item name is always obligatory, if a number has been entered
+                            $tc = '';$tv='';
+                            if (
+                                isset($_POST['item'.$individual.'_name']) && 
+                                $_POST['item'.$individual.'_name'] == '' &&
+                                $_POST['item'.$individual.($unit==''? '':"_($unit)")] <> ''
+                                ) {
+                                $passed = false;
+                                msg('Item name must be stated',-1);
+                                $tc = ' style="background-color:pink" ';
+                            } else $tv = $_POST['item'.$individual.'_name'];
+                            
+                            # $_POST[str_replace(" ","_",$l)]==''
+                            
+                            # $res .= "<td>$l".($ob? "*":"")."</td>";
+                            $res .= '<td><input autocomplete="off" '.$tc.'type="text" size="30" name="item'.$individual.'_name" placeholder="Artikelbezeichnung" value="'.$tv.'"></td>';
+                        } else {
+                            $res .= "<td>$l".($ob? "*":"")."</td>";
+                        }
+
                         $res .= "<td>";
                             
                         $red = false;
-                        if (isset($_POST[str_replace(" ","_",$l)])) {
-                            $value = $_POST[str_replace(" ","_",$l)];
-                            if ($ob && $_POST[str_replace(" ","_",$l)]=='') {
+                        if (isset($_POST["sendorder"])) {
+                            
+                            $identifier = str_replace(" ","_",$l.($unit==''? '':"_($unit)"));
+                            
+                            $value = $_POST[$identifier];
+                                                        
+                            if ($ob && $value=='') {
                                 msg('Please fill out "<b>'.$l.'</b>"',-1);
                                 $red = true;
                                 $passed = false;
@@ -148,7 +185,19 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
 
     public function format_mail($info){
         $res = "<html><table border=1 style='border-collapse: collapse;'>";
+        
+        $name = ''; #Array(); # Array for articles, which the user has named
+        
         foreach ($info as $k => $i) {
+            if (strpos($k,'item')==0 && strpos($k,'name')==strlen($k)-4) {
+                $name = $i;
+                continue;
+            }
+            if (strpos($k,'item')===0) {
+                $f = strpos($k,'_');
+                if ($f === false) {$k = $name;} else {$k = $name . substr($k,$f);}
+            }
+            
             if (!in_array($k,Array('email','space','sendorder')) && $i<>"") {
                 $k = str_replace("_"," ",$k);
                 $res .= "<tr><th style='padding:2px 10px;background:linen'>$k</th><td style='padding:2px 10px;'>$i</td></tr>";
@@ -171,6 +220,7 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
             
             $d = $this->build_form($lines);
             
+           
             if (!$d['pass']) {
                 $renderer->doc .= $d['form'];
             } else {
@@ -185,7 +235,7 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                     $html = $this->format_mail($_POST);
         
                     $mail->setBody("",null,null,$html);
-		
+
                     $ok = $mail->send();
                     
                     

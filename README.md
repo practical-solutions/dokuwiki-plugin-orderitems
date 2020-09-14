@@ -19,6 +19,7 @@ after the unit (which can be left empty).
 
 Additional keyword can be used at the **beginning** of a line.
 
+* ``noname`` - User has to enter the name of the article manually
 * ``id`` - Adds additional input field for an article no. Must be stated before other prefixes.
 * ``mail [email]`` - states the email to where the form information is to be sent. Comma separation of multiple E-Mails possible
 * ``space`` - creates a space (in form of a new table) between the data
@@ -38,6 +39,7 @@ Another item ## Unit
 
 space
 
+noname
 id Another simple item ## ## 10
 And again ## cm ## 20 !!
 text Name ## Name !!
