@@ -24,4 +24,11 @@
 
 .plugin_orderitems tr:nth-child(even) {background: linen}
 
+.orderitems__successbox {
+    padding:2px;
+    border:1px solid green;
+    background:lightgreen;
+    display:inline-block;
+}
+
 

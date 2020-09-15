@@ -1,7 +1,6 @@
 # DokuWiki-Plugin: Order Items
 
-A variant of a form generator which is intended for creating lists in a table. Each row containing an item name and a input box for entering the number of
- this item to be ordered. An email adress can be stated to which the order is sent.
+A variant of a form generator which is intended for creating lists in a table. Each row containing an item name and a input box for entering the number of this item to be ordered. An email adress can be stated to which the order is sent.
 
 ![Screenshot](screenshot.png)
 
@@ -11,6 +10,8 @@ A variant of a form generator which is intended for creating lists in a table. E
 * Tested with PHP **7.2**
 
 ## Usage
+
+Do not use Wiki-Markup inside the orderitems-tags!
 
 Use the ``<orderitem> ... </orderitem>`` tags to create a list.
 
