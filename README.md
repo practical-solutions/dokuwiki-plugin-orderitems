@@ -23,12 +23,14 @@ Additional keyword can be used at the **beginning** of a line.
 * ``noname`` - User has to enter the name of the article manually
 * ``id`` - Adds additional input field for an article no. Must be stated before other prefixes.
 * ``mail [email]`` - states the email to where the form information is to be sent. Comma separation of multiple E-Mails possible
-* ``space`` - creates a space (in form of a new table) between the data
+* ``space [title]`` - creates a space (in form of a new table) between the data. An optional title can be placed inbetween
 * ``text [item name]`` - displays a larger input box
 * ``box [item name]`` - displays a textarea
 * ``hidden [text]`` - additional text which is not display but sent per email
 * ``!!`` at the **end** of a line indicate that a field is mandatory
 * ``copyto`` - option to send a copy of the list to the stated email-address
+
+Caution: Following keywords should not be used as identifiers at present, as they are used as internal identifiers: ``item[x]``, ``name[x]``
 
 ### Example
 

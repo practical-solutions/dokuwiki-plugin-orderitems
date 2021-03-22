@@ -78,7 +78,9 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                 } else {
                     
                     if (strpos(strtolower($l),'space') === 0) {
-                        $res .= "</table><table class='plugin_orderitems'><br>";
+                        $title = '';
+                        if (strlen(trim($l))>5) $title = "<h3>".trim(substr($l,5))."</h3>";
+                        $res .= "</table><br>$title<table class='plugin_orderitems'>";
                     } elseif (strpos(strtolower($l),'hidden') === 0) {
                         $amount++;
                         $res .= "<input type=\"hidden\" name=\"Zusatztext $amount\" value='".substr($l,6)."'>";
