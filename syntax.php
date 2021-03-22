@@ -93,10 +93,12 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                         # Should item id be entered as an additional field?
                         $id = false;
                         if (strpos(strtolower($l),'id ') === 0 || strtolower($l)=='id') {$id = true;$l = ltrim(substr($l,2));}
-                        
+                                               
                         $box = 0; # 0 = small textbox (default), 1 = large textbox, 2 = textarea
                         if (strpos(strtolower($l),'text ') === 0) {$l = substr($l,5);$box=1;}
                         if (strpos(strtolower($l),'box ') === 0) {$l = substr($l,4);$box=2;}
+                        
+                        if (strpos(strtolower($l),'copyto') === 0) {$box=1;}
                         
                         # check if obligatory
                         $ob = false;
@@ -129,7 +131,9 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                             
                             $res .= '<td><input autocomplete="off" '.$tc.'type="text" size="30" name="item'.$individual.'_name" placeholder="'.$this->getLang('item name').'" value="'.$tv.'"></td>';
                         } else {
-                            $res .= "<td>$l".($ob? "*":"")."</td>";
+                            $n = $l;
+                            if ($l == 'copyto') $n = $this->getLang('copy to');
+                            $res .= "<td>$n".($ob? "*":"")."</td>";
                         }
 
                         $res .= "<td>";
@@ -194,7 +198,7 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                 if ($f === false) {$k = $name;} else {$k = $name . substr($k,$f);}
             }
             
-            if (!in_array($k,Array('email','space','sendorder')) && $i<>"") {
+            if (!in_array($k,Array('email','space','sendorder','copyto')) && $i<>"") {
                 $k = str_replace("_"," ",$k);
                 $res .= "<tr><th style='padding:2px 10px;background:linen'>$k</th><td style='padding:2px 10px;'>$i</td></tr>";
             }
@@ -233,6 +237,16 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
 
                     $ok = $mail->send();
                     
+                    # Send a copy of the email
+                    if (isset($_POST['copyto'])){
+                        if (filter_var($_POST['copyto'], FILTER_VALIDATE_EMAIL)){                            
+                            $mail->to($_POST['copyto']);
+                            if ($mail->send()){
+                                msg($this->getLang('copy to').$_POST['copyto'].' - '.$this->getLang('mail success'),1); 
+                            } else msg($this->getLang('copy to').$_POST['copyto'].' - '.$this->getLang('mail error'),-1); 
+                        } elseif ($_POST['copto']<>'') msg($this->getLang('copy to').$_POST['copyto'].' - '.$this->getLang('mail error'),-1); 
+                    }
+                    
                     if ($ok) {
                         msg($this->getLang("mail success"),1);
                         $renderer->doc .= '<div class="orderitems__successbox">'.$this->getLang("send msg").'</div>';
@@ -240,6 +254,14 @@ class syntax_plugin_orderitems extends DokuWiki_Syntax_Plugin {
                         msg($this->getLang("mail error"),-1);
                         $renderer->doc .= $d['form'];
                     }
+                    
+                    # Show Table in PopUp with option to print
+                    $renderer->doc .= '<div id="orderitems__print" style="display:none">'.
+                                       date("d.m.Y").'<hr>'.
+                                       $this->format_mail($_POST).
+                                       '</div>';
+                    $out = str_replace(array('%%SHOWPRINT%%','%%PRINT%%','%%CLOSE%%'),array($this->getLang("print show button"),$this->getLang("print button"),$this->getLang("close button")),file_get_contents('lib/plugins/orderitems/print.html'));
+                    $renderer->doc .= $out;
                 }
             }
             return true;

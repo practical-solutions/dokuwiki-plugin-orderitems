@@ -28,11 +28,12 @@ Additional keyword can be used at the **beginning** of a line.
 * ``box [item name]`` - displays a textarea
 * ``hidden [text]`` - additional text which is not display but sent per email
 * ``!!`` at the **end** of a line indicate that a field is mandatory
+* ``copyto`` - option to send a copy of the list to the stated email-address
 
 ### Example
 
 ```
-<orderitem>
+<orderitems>
 mail test@example.com
 
 A simple item
@@ -50,5 +51,5 @@ box whatever
 hidden This text will be sent additionally
 hidden For example: customer number
 
-</orderitem>
+</orderitems>
 ```
